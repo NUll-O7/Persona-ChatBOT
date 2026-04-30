@@ -66,3 +66,17 @@ Exit code: 0
 - Deployed URL to add to README
 
 ---
+
+## Commit 2 — `fix: correct Gemini model ID to gemini-3-flash-preview`
+
+**Date:** 2026-04-30
+**Branch:** main
+**Status:** ✅ Committed & pushed
+
+### What Changed
+- `persona-chatbot/app/api/chat/route.ts` — Changed model string from `gemini-3.0-flash` (invalid) to `gemini-3-flash-preview` (official API ID confirmed from https://ai.google.dev/gemini-api/docs/models/gemini-3-flash-preview)
+
+### Root Cause
+The v1beta Gemini API does not recognise dot-notation version strings like `gemini-3.0-flash`. The correct identifier is `gemini-3-flash-preview`.
+
+---
