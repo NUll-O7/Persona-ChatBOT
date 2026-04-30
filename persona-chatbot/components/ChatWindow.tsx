@@ -13,6 +13,7 @@ interface ChatWindowProps {
   error: string | null;
   onSuggestionSelect: (text: string) => void;
   onRetry: () => void;
+  isClearing: boolean;
 }
 
 export default function ChatWindow({
@@ -22,6 +23,7 @@ export default function ChatWindow({
   error,
   onSuggestionSelect,
   onRetry,
+  isClearing,
 }: ChatWindowProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const isEmpty = messages.length === 0;
@@ -30,6 +32,17 @@ export default function ChatWindow({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
+
+  // Context-clear animation during persona switch
+  if (isClearing) {
+    return (
+      <div className="chat-window" role="log" aria-live="polite" aria-label="Conversation">
+        <div className="context-clear">
+          <span className="context-clear__text">context cleared</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="chat-window" role="log" aria-live="polite" aria-label="Conversation">
@@ -44,16 +57,15 @@ export default function ChatWindow({
           {isLoading && <TypingIndicator persona={persona} />}
 
           {error && (
-            <div className="error-banner" role="alert">
-              <span className="error-icon">⚠️</span>
-              <span className="error-text">{error}</span>
+            <div className="error-inline" role="alert">
+              <span className="error-inline__icon">!</span>
+              <span className="error-inline__text">{error}</span>
               <button
                 id="retry-button"
-                className="error-retry"
+                className="error-inline__retry"
                 onClick={onRetry}
-                style={{ color: persona.accentColor }}
               >
-                Retry
+                retry
               </button>
             </div>
           )}

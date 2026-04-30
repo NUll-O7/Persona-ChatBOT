@@ -1,7 +1,6 @@
 'use client';
 
-import Image from 'next/image';
-import { Persona, PersonaId } from '@/lib/types';
+import { PersonaId } from '@/lib/types';
 import { PERSONAS, PERSONA_ORDER } from '@/lib/personas';
 
 interface PersonaSwitcherProps {
@@ -11,47 +10,21 @@ interface PersonaSwitcherProps {
 
 export default function PersonaSwitcher({ activePersonaId, onSwitch }: PersonaSwitcherProps) {
   return (
-    <div className="persona-switcher">
+    <div className="persona-pills" role="tablist" aria-label="Persona selector">
       {PERSONA_ORDER.map((id) => {
-        const persona: Persona = PERSONAS[id];
+        const persona = PERSONAS[id];
         const isActive = id === activePersonaId;
         return (
           <button
             key={id}
-            id={`persona-tab-${id}`}
+            id={`persona-pill-${id}`}
             onClick={() => onSwitch(persona.id)}
-            className={`persona-tab ${isActive ? 'persona-tab--active' : 'persona-tab--inactive'}`}
-            style={isActive ? { '--accent': persona.accentColor } as React.CSSProperties : {}}
+            className={`persona-pill ${isActive ? 'persona-pill--active' : ''}`}
             aria-selected={isActive}
             role="tab"
           >
-            <div
-              className="persona-tab__avatar"
-              style={{ background: isActive ? persona.accentColor : '#374151' }}
-            >
-              <Image
-                src={persona.avatarImage}
-                alt={persona.name}
-                width={36}
-                height={36}
-                className="persona-tab__avatar-img"
-                onError={(e) => {
-                  // Fallback to initials if image fails
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-              <span className="persona-tab__initials">{persona.avatarInitials}</span>
-            </div>
-            <div className="persona-tab__info">
-              <span className="persona-tab__name">{persona.name}</span>
-              <span className="persona-tab__title">{persona.title}</span>
-            </div>
-            {isActive && (
-              <div
-                className="persona-tab__indicator"
-                style={{ background: persona.accentColor }}
-              />
-            )}
+            {persona.name.split(' ')[0]}
+            {isActive && <span className="persona-pill__underline" />}
           </button>
         );
       })}

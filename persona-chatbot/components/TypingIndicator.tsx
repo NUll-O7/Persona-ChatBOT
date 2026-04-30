@@ -7,20 +7,16 @@ interface TypingIndicatorProps {
 }
 
 export default function TypingIndicator({ persona }: TypingIndicatorProps) {
+  const firstName = persona.name.split(' ')[0].toUpperCase();
+
   return (
-    <div className="message-row message-row--assistant">
-      <div
-        className="message-avatar"
-        style={{ background: persona.accentColor }}
-        aria-label={`${persona.name} is typing`}
-      >
-        <span>{persona.avatarInitials}</span>
-      </div>
-      <div className="typing-indicator" aria-live="polite" aria-label={`${persona.name} is typing`}>
-        <span className="typing-dot" style={{ background: persona.accentColor }} />
-        <span className="typing-dot" style={{ background: persona.accentColor }} />
-        <span className="typing-dot" style={{ background: persona.accentColor }} />
-      </div>
+    <div className="typing-indicator" aria-live="polite" aria-label={`${persona.name} is typing`}>
+      <span className="typing-indicator__label">{firstName} is thinking</span>
+      <span className="typing-indicator__dots">
+        <span className="typing-dot" />
+        <span className="typing-dot" />
+        <span className="typing-dot" />
+      </span>
     </div>
   );
 }

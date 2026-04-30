@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Message, PersonaId } from '@/lib/types';
 import { PERSONAS } from '@/lib/personas';
 import PersonaSwitcher from '@/components/PersonaSwitcher';
@@ -22,16 +22,31 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
+  const [isClearing, setIsClearing] = useState(false);
+  const clearTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const activePersona = PERSONAS[activePersonaId];
   const activeMessages = conversations[activePersonaId];
 
-  // Switch persona — clears chat for that persona
+  // Switch persona with context-clear animation
   const handlePersonaSwitch = useCallback((id: PersonaId) => {
-    setActivePersonaId(id);
+    if (id === activePersonaId) return;
+
+    // Clear any existing timer
+    if (clearTimerRef.current) {
+      clearTimeout(clearTimerRef.current);
+    }
+
+    setIsClearing(true);
     setError(null);
     setInput('');
-  }, []);
+
+    // After brief clear animation, switch persona
+    clearTimerRef.current = setTimeout(() => {
+      setActivePersonaId(id);
+      setIsClearing(false);
+    }, 500);
+  }, [activePersonaId]);
 
   const sendMessage = useCallback(async (messageText: string) => {
     const trimmed = messageText.trim();
@@ -91,7 +106,7 @@ export default function HomePage() {
         [activePersonaId]: [...prev[activePersonaId], assistantMessage],
       }));
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      const msg = err instanceof Error ? err.message : 'request failed, please try again';
       setError(msg);
       // Roll back the optimistic user message
       setConversations((prev) => ({
@@ -116,35 +131,16 @@ export default function HomePage() {
       {/* Header */}
       <header className="app-header">
         <div className="app-header__brand">
-          <span className="app-header__logo">⚡</span>
-          <span className="app-header__title">ScalerChat</span>
-          <span className="app-header__subtitle">Powered by Gemini AI</span>
+          <span className="app-header__title">
+            persona-chat:~$
+            <span className="app-header__cursor" />
+          </span>
         </div>
-        <div className="app-header__active-persona">
-          <span
-            className="active-persona-dot"
-            style={{ background: activePersona.accentColor }}
-          />
-          <span>{activePersona.name}</span>
-        </div>
-      </header>
-
-      {/* Persona Switcher */}
-      <PersonaSwitcher
-        activePersonaId={activePersonaId}
-        onSwitch={handlePersonaSwitch}
-      />
-
-      {/* Active Persona Banner */}
-      <div className="persona-banner" style={{ borderColor: activePersona.accentColor }}>
-        <div
-          className="persona-banner__dot"
-          style={{ background: activePersona.accentColor }}
+        <PersonaSwitcher
+          activePersonaId={activePersonaId}
+          onSwitch={handlePersonaSwitch}
         />
-        <span className="persona-banner__name">{activePersona.name}</span>
-        <span className="persona-banner__sep">·</span>
-        <span className="persona-banner__bio">{activePersona.shortBio}</span>
-      </div>
+      </header>
 
       {/* Chat Area */}
       <ChatWindow
@@ -154,6 +150,7 @@ export default function HomePage() {
         error={error}
         onSuggestionSelect={handleSuggestionSelect}
         onRetry={handleRetry}
+        isClearing={isClearing}
       />
 
       {/* Input */}

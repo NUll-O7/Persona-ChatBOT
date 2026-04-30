@@ -8,27 +8,22 @@ interface SuggestionChipsProps {
 }
 
 export default function SuggestionChips({ persona, onSelect }: SuggestionChipsProps) {
-  return (
-    <div className="suggestion-chips-wrapper">
-      <div className="suggestion-chips-hero">
-        <div
-          className="suggestion-avatar-large"
-          style={{ background: persona.accentColor }}
-        >
-          <span>{persona.avatarInitials}</span>
-        </div>
-        <h2 className="suggestion-name">{persona.name}</h2>
-        <p className="suggestion-bio">{persona.shortBio}</p>
-      </div>
+  const firstName = persona.name.split(' ')[0].toUpperCase();
 
-      <p className="suggestion-label">Try asking:</p>
+  return (
+    <div className="empty-state">
+      <p className="empty-state__line">
+        <span className="empty-state__hash">#</span>
+        new session with{' '}
+        <span className="empty-state__persona-name">{firstName}</span>
+      </p>
+
       <div className="suggestion-chips">
         {persona.suggestionChips.map((chip, i) => (
           <button
             key={i}
             id={`suggestion-chip-${persona.id}-${i}`}
             className="suggestion-chip"
-            style={{ '--chip-color': persona.accentColor } as React.CSSProperties}
             onClick={() => onSelect(chip)}
           >
             {chip}
