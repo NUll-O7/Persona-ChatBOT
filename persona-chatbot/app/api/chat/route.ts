@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     // --- Call Gemini with persona system prompt ---
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3.0-flash',
+      model: 'gemini-3-flash-preview',
       systemInstruction: persona.systemPrompt,
     });
 
