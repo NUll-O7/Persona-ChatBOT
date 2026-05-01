@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Message, PersonaId } from '@/lib/types';
 import { PERSONAS } from '@/lib/personas';
 import PersonaSwitcher from '@/components/PersonaSwitcher';
@@ -22,31 +23,28 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
-  const [isClearing, setIsClearing] = useState(false);
-  const clearTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isSwitching, setIsSwitching] = useState(false);
+  const [switchingTo, setSwitchingTo] = useState<PersonaId>('anshuman');
 
   const activePersona = PERSONAS[activePersonaId];
   const activeMessages = conversations[activePersonaId];
 
-  // Switch persona with context-clear animation
-  const handlePersonaSwitch = useCallback((id: PersonaId) => {
-    if (id === activePersonaId) return;
+  // Switch persona with overlay animation
+  const handlePersonaSwitch = useCallback(
+    (id: PersonaId) => {
+      if (id === activePersonaId || isSwitching) return;
+      setSwitchingTo(id);
+      setIsSwitching(true);
+      setError(null);
+      setInput('');
+    },
+    [activePersonaId, isSwitching]
+  );
 
-    // Clear any existing timer
-    if (clearTimerRef.current) {
-      clearTimeout(clearTimerRef.current);
-    }
-
-    setIsClearing(true);
-    setError(null);
-    setInput('');
-
-    // After brief clear animation, switch persona
-    clearTimerRef.current = setTimeout(() => {
-      setActivePersonaId(id);
-      setIsClearing(false);
-    }, 500);
-  }, [activePersonaId]);
+  const handleOverlayComplete = useCallback(() => {
+    setIsSwitching(false);
+    setActivePersonaId(switchingTo);
+  }, [switchingTo]);
 
   const sendMessage = useCallback(async (messageText: string) => {
     const trimmed = messageText.trim();
@@ -129,13 +127,63 @@ export default function HomePage() {
   return (
     <main className="app-shell">
       {/* Header */}
-      <header className="app-header">
-        <div className="app-header__brand">
-          <span className="app-header__title">
-            persona-chat:~$
-            <span className="app-header__cursor" />
-          </span>
-        </div>
+      <header
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          height: 48,
+          background: 'var(--bg-header)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(122,92,42,0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        {/* Boot scan line */}
+        <motion.div
+          initial={{ x: '-100%' }}
+          animate={{ x: '110%' }}
+          transition={{ duration: 1.4, ease: 'easeInOut', delay: 0.3 }}
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            width: '60%',
+            height: 1,
+            background: 'linear-gradient(90deg, transparent, var(--amber-primary), transparent)',
+            opacity: 0.5,
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Title with blinking cursor */}
+        <span
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 20,
+            color: 'var(--amber-dim)',
+            letterSpacing: '0.15em',
+            userSelect: 'none',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          persona-chat:~$
+          <motion.span
+            animate={{ opacity: [1, 1, 0, 0] }}
+            transition={{ duration: 1.2, repeat: Infinity, times: [0, 0.45, 0.45, 1] }}
+            style={{ color: 'var(--amber-primary)', marginLeft: 2 }}
+          >
+            █
+          </motion.span>
+        </span>
+
         <PersonaSwitcher
           activePersonaId={activePersonaId}
           onSwitch={handlePersonaSwitch}
@@ -150,7 +198,9 @@ export default function HomePage() {
         error={error}
         onSuggestionSelect={handleSuggestionSelect}
         onRetry={handleRetry}
-        isClearing={isClearing}
+        isSwitching={isSwitching}
+        switchingToName={switchingTo}
+        onOverlayComplete={handleOverlayComplete}
       />
 
       {/* Input */}

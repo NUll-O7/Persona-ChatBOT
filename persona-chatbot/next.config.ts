@@ -2,8 +2,8 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   images: {
-    // Allow local /avatars images (no external domains needed)
-    unoptimized: false,
+    // Use regular <img> tags for pixel art avatars — unoptimized to preserve pixelation
+    unoptimized: true,
   },
 };
 
